@@ -1,0 +1,114 @@
+
+import React, { useState, useEffect } from 'react';
+import { Theme, Page, DailyMessage } from './types';
+import { COLORS } from './constants';
+import ThemeToggle from './components/ThemeToggle';
+import DailyWidget from './components/DailyWidget';
+import Archive from './components/Archive';
+import AboutBTS from './components/AboutBTS';
+import Project from './components/Project';
+import Mural from './components/Mural';
+import Contact from './components/Contact';
+import { fetchDailyMessageFromSheet } from './services/messageService';
+
+const App: React.FC = () => {
+  const [theme, setTheme] = useState<Theme>('light');
+  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [message, setMessage] = useState<DailyMessage | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('app-theme') as Theme;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+    const today = new Date().toLocaleDateString();
+    const savedMsg = localStorage.getItem('daily-message-content');
+    const savedDate = localStorage.getItem('daily-message-date');
+    if (savedMsg && savedDate === today) {
+      setMessage(JSON.parse(savedMsg));
+      setRevealed(true);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      localStorage.setItem('app-theme', next);
+      document.documentElement.classList.toggle('dark', next === 'dark');
+      return next;
+    });
+  };
+
+  const handleReveal = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const msg = await fetchDailyMessageFromSheet();
+      if (msg) {
+        setMessage(msg);
+        setRevealed(true);
+        localStorage.setItem('daily-message-content', JSON.stringify(msg));
+        localStorage.setItem('daily-message-date', new Date().toLocaleDateString());
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const currentColors = COLORS[theme];
+
+  const renderContent = () => {
+    switch (currentPage) {
+      case 'archive': return <Archive theme={theme} />;
+      case 'about-bts': return <AboutBTS theme={theme} />;
+      case 'project': return <Project theme={theme} />;
+      case 'mural': return <Mural theme={theme} />;
+      case 'contact': return <Contact theme={theme} />;
+      default: return (
+        <div className="flex flex-col items-center max-w-full overflow-hidden">
+          {!revealed && (
+            <div className="text-center mb-10 px-4">
+              <h2 className="text-4xl md:text-6xl font-elegant bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">365 dias com BTS</h2>
+              <p className="mt-4 opacity-70">Sua dose diária de carinho vinda do Bangtan.</p>
+            </div>
+          )}
+          <DailyWidget theme={theme} onReveal={handleReveal} isRevealing={loading} message={message} revealed={revealed} />
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className={`min-h-screen ${currentColors.bg} ${currentColors.text} flex flex-col transition-colors duration-500`}>
+      <header className={`p-4 md:p-6 border-b ${currentColors.border} flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-50 ${currentColors.bg} bg-opacity-90 backdrop-blur-sm`}>
+        <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setCurrentPage('home')}>
+          <img src="https://i.imgur.com/kLmiBhu.png" alt="BTS" className="w-8 h-8" />
+          <h1 className="text-xl font-anton tracking-tight">Frases do BTS</h1>
+        </div>
+        <nav className="flex gap-4 overflow-x-auto no-scrollbar max-w-full px-2 py-1">
+          {['home', 'about-bts', 'project', 'mural', 'archive', 'contact'].map(p => (
+            <button key={p} onClick={() => setCurrentPage(p as Page)} className={`text-[10px] uppercase font-bold tracking-widest whitespace-nowrap transition-colors ${currentPage === p ? 'text-pink-500 border-b-2 border-pink-500' : 'opacity-50 hover:opacity-100'}`}>
+              {p === 'about-bts' ? 'O BTS' : p === 'project' ? 'O Projeto' : p}
+            </button>
+          ))}
+        </nav>
+        <div className="hidden md:block">
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        </div>
+      </header>
+      <main className="flex-1 flex flex-col p-4 md:p-8 overflow-x-hidden">
+        {renderContent()}
+      </main>
+      <footer className="p-8 text-center opacity-40 text-[10px] uppercase tracking-widest font-bold">
+        Feito com 💜 por ARMYs
+      </footer>
+    </div>
+  );
+};
+
+export default App;
