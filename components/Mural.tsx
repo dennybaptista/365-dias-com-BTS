@@ -22,34 +22,6 @@ const armyMessages: ArmyMessage[] = [
     location: 'São Paulo, Brasil',
     date: '9 de dezembro de 2025',
     content: '"BTS, vocês mudaram minha vida! Obrigada por cada música, cada momento, cada sorriso. Vocês são a minha força nos dias difíceis. 보라해! 💜"'
-  },
-  {
-    id: '2',
-    name: 'Ana Beatriz',
-    location: 'Rio de Janeiro, Brasil',
-    date: '12 de dezembro de 2025',
-    content: '"Obrigada por me ensinarem a amar a mim mesma quando ninguém mais ensinou. Vocês são minha luz. ✨"'
-  },
-  {
-    id: '3',
-    name: 'Sarah Williams',
-    location: 'New York, USA',
-    date: '15 de dezembro de 2025',
-    content: '"Your music saved me in ways I can\'t even explain. Thank you for being my safe place. Borahae! 💜"'
-  },
-  {
-    id: '4',
-    name: 'Lucas Santos',
-    location: 'Lisboa, Portugal',
-    date: '18 de dezembro de 2025',
-    content: '"Atravessando oceanos com a vossa música. O Bangtan é o meu lar. Eternamente grato por cada letra que me toca o coração."'
-  },
-  {
-    id: '5',
-    name: 'Elena Rossi',
-    location: 'Rome, Italy',
-    date: '20 de dezembro de 2025',
-    content: '"Grazie per avermi dato la força di sognare ancora. Siete leggenda e la mia costante fonte de inspiração. 💜"'
   }
 ];
 
@@ -65,6 +37,9 @@ const Mural: React.FC<MuralProps> = ({ theme }) => {
       setMessage('');
     }, 500);
   };
+
+  // Pegamos apenas a primeira mensagem conforme solicitado
+  const displayMessages = armyMessages.slice(0, 1);
 
   return (
     <div className="w-full max-w-4xl mx-auto reveal-animation space-y-12 pb-24 px-4 relative">
@@ -118,7 +93,7 @@ const Mural: React.FC<MuralProps> = ({ theme }) => {
 
       {/* Messages Grid */}
       <div className="grid grid-cols-1 gap-6">
-        {armyMessages.map((msg) => (
+        {displayMessages.map((msg) => (
           <div 
             key={msg.id}
             className={`p-8 md:p-10 rounded-[2.5rem] border-2 transition-all duration-300 ${currentColors.card} ${currentColors.border} shadow-sm hover:shadow-md hover:border-purple-400/30 group`}
