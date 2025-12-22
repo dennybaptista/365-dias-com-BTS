@@ -3,8 +3,26 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frases do BTS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Frases do BTS | 365 Dias de Conexão</title>
+    
+    <!-- Configurações PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#a855f7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BTS 365">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/kLmiBhu.png">
+    
+    <!-- Meta Tags para Redes Sociais -->
+    <meta name="description" content="Sua dose diária de carinho e motivação inspirada no universo do BTS.">
+    <meta property="og:title" content="Frases do BTS - 365 Dias">
+    <meta property="og:description" content="Uma meditação diária para ARMYs focada em bem-estar.">
+    <meta property="og:image" content="https://i.imgur.com/nIvbBDx.jpeg">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" type="image/png" href="https://i.imgur.com/kLmiBhu.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +32,7 @@
             font-family: 'Questrial', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overscroll-behavior-y: contain;
         }
         .font-anton {
             font-family: 'Anton', sans-serif;
@@ -46,31 +65,13 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-
-        /* Floating Background Decorations */
         @keyframes floating {
             0% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-15px) rotate(2deg); }
             100% { transform: translateY(0px) rotate(0deg); }
         }
-        @keyframes pulsing-blink {
-            0%, 100% { opacity: 0.15; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.1); }
-        }
         .animate-float-slow {
             animation: floating 6s ease-in-out infinite;
-        }
-        .animate-float-medium {
-            animation: floating 8s ease-in-out infinite;
-        }
-        .animate-blink {
-            animation: pulsing-blink 4s ease-in-out infinite;
-        }
-        .decor-item {
-            position: fixed;
-            pointer-events: none;
-            z-index: 0;
-            transition: color 0.5s ease;
         }
     </style>
 <script type="importmap">
@@ -83,10 +84,8 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body class="transition-colors duration-500">
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
