@@ -144,13 +144,18 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen ${currentColors.bg} ${currentColors.text} flex flex-col transition-colors duration-500`}>
-      <header className={`p-4 md:p-6 border-b ${currentColors.border} flex flex-col md:flex-row items-center justify-between gap-6 sticky top-0 z-50 ${currentColors.bg} bg-opacity-90 backdrop-blur-sm`}>
+      <header className={`p-4 md:p-6 border-b ${currentColors.border} flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-50 ${currentColors.bg} bg-opacity-90 backdrop-blur-sm`}>
         <div 
-          className="flex flex-col items-center gap-1 p-3 bg-white border-2 border-[#3B125C] rounded-2xl cursor-pointer shadow-sm hover:shadow-md transition-shadow shrink-0" 
+          className="flex flex-row items-center gap-2 cursor-pointer shrink-0" 
           onClick={() => handlePageChange('home')}
         >
-          <img src="https://i.imgur.com/kLmiBhu.png" alt="BTS" className="w-8 h-8 object-contain" />
-          <h1 className="text-[10px] md:text-xs font-anton tracking-widest text-[#3B125C] whitespace-nowrap">Frases do BTS</h1>
+          <img src="https://i.imgur.com/kLmiBhu.png" alt="BTS" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
+          <h1 
+            className="text-lg md:text-xl font-anton tracking-widest uppercase whitespace-nowrap"
+            style={{ color: '#3B125C' }}
+          >
+            Frases do BTS
+          </h1>
         </div>
         
         <nav className="flex gap-4 overflow-x-auto no-scrollbar max-w-full px-2 py-1">
