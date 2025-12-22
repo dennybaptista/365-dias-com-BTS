@@ -10,7 +10,7 @@ import Project from './components/Project';
 import Mural from './components/Mural';
 import Contact from './components/Contact';
 import AppPage from './components/AppPage';
-import { fetchDailyMessageFromSheet } from './services/messageService';
+import { fetchDailyMessageFromSheet, fetchAllPastMessagesFromSheet } from './services/messageService';
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
@@ -19,18 +19,30 @@ const App: React.FC = () => {
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Deep linking logic
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const dateParam = params.get('d');
+    
+    const loadDeepLink = async (date: string) => {
+      setLoading(true);
+      const all = await fetchAllPastMessagesFromSheet();
+      const found = all.find(m => m.date === date);
+      if (found) {
+        setMessage(found);
+        setRevealed(true);
+      }
+      setLoading(false);
+    };
+
+    if (dateParam) {
+      loadDeepLink(dateParam);
+    }
+
     const savedTheme = localStorage.getItem('app-theme') as Theme;
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    }
-    const today = new Date().toLocaleDateString();
-    const savedMsg = localStorage.getItem('daily-message-content');
-    const savedDate = localStorage.getItem('daily-message-date');
-    if (savedMsg && savedDate === today) {
-      setMessage(JSON.parse(savedMsg));
-      setRevealed(true);
     }
   }, []);
 
@@ -51,14 +63,23 @@ const App: React.FC = () => {
       if (msg) {
         setMessage(msg);
         setRevealed(true);
-        localStorage.setItem('daily-message-content', JSON.stringify(msg));
-        localStorage.setItem('daily-message-date', new Date().toLocaleDateString());
       }
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (page: Page) => {
+    if (page === 'home') {
+      // Quando volta para home, sempre esconde a mensagem para forçar o clique em "Revelar"
+      setRevealed(false);
+      setMessage(null);
+      // Limpa parâmetros da URL ao voltar para a home "pura"
+      window.history.pushState({}, '', window.location.pathname);
+    }
+    setCurrentPage(page);
   };
 
   const currentColors = COLORS[theme];
@@ -79,7 +100,14 @@ const App: React.FC = () => {
               <p className="mt-4 opacity-70">Sua dose diária de carinho vinda do Bangtan.</p>
             </div>
           )}
-          <DailyWidget theme={theme} onReveal={handleReveal} isRevealing={loading} message={message} revealed={revealed} />
+          <DailyWidget 
+            theme={theme} 
+            onReveal={handleReveal} 
+            isRevealing={loading} 
+            message={message} 
+            revealed={revealed} 
+            onBack={() => handlePageChange('home')}
+          />
         </div>
       );
     }
@@ -98,15 +126,15 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen ${currentColors.bg} ${currentColors.text} flex flex-col transition-colors duration-500`}>
       <header className={`p-4 md:p-6 border-b ${currentColors.border} flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-50 ${currentColors.bg} bg-opacity-90 backdrop-blur-sm`}>
-        <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setCurrentPage('home')}>
+        <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => handlePageChange('home')}>
           <img src="https://i.imgur.com/kLmiBhu.png" alt="BTS" className="w-8 h-8" />
-          <h1 className="text-xl font-anton tracking-tight">Frases do BTS</h1>
+          <h1 className="text-xl font-anton tracking-tight text-purple-600 dark:text-purple-400">Frases do BTS</h1>
         </div>
         <nav className="flex gap-4 overflow-x-auto no-scrollbar max-w-full px-2 py-1">
           {navItems.map(item => (
             <button 
               key={item.id} 
-              onClick={() => setCurrentPage(item.id as Page)} 
+              onClick={() => handlePageChange(item.id as Page)} 
               className={`text-[10px] uppercase font-bold tracking-widest whitespace-nowrap transition-colors ${currentPage === item.id ? 'text-pink-500 border-b-2 border-pink-500' : 'opacity-50 hover:opacity-100'}`}
             >
               {item.label}
