@@ -1,0 +1,26 @@
+
+{
+  "short_name": "Frases BTS",
+  "name": "Frases do BTS: 365 Dias",
+  "icons": [
+    {
+      "src": "https://i.imgur.com/kLmiBhu.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.imgur.com/kLmiBhu.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#a855f7",
+  "background_color": "#FAF7FD",
+  "orientation": "portrait",
+  "description": "Sua dose diária de carinho vinda do Bangtan.",
+  "lang": "pt-BR"
+}
