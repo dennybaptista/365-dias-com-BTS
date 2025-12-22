@@ -55,13 +55,13 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
     const cleanQuote = stripMarkdown(message.quote);
     const shareUrl = `${window.location.origin}${window.location.pathname}?d=${encodeURIComponent(message.date)}`;
     
-    // Link movido para o final absoluto para carregar snippet corretamente
-    const shareText = `💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: \n${shareUrl}`;
-    const encodedText = encodeURIComponent(shareText);
+    // Texto formatado conforme solicitado: link estritamente ao final.
+    const fullShareText = `💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${shareUrl}`;
+    const encodedText = encodeURIComponent(fullShareText);
     
     const urls = {
       whatsapp: `https://api.whatsapp.com/send?text=${encodedText}`,
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: `)}`
+      telegram: `https://t.me/share/url?text=${encodedText}`
     };
     
     window.open(urls[platform], '_blank');
@@ -151,7 +151,6 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
           </div>
 
           <div className="p-6 md:p-10 space-y-8 md:space-y-10">
-            {/* Shadow removido aqui conforme solicitado */}
             <div className={`p-6 md:p-8 rounded-2xl border-2 border-dashed ${theme === 'light' ? 'bg-gray-50 border-gray-200' : 'bg-purple-950/20 border-purple-900/40'} relative shadow-none`}>
               <p className={`text-base md:text-xl font-medium leading-relaxed italic ${currentColors.text} opacity-90`}>
                 "{formatRichText(message.quote)}"
@@ -177,7 +176,6 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
             <div className="flex flex-col items-center gap-4 py-4">
               <span className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${currentColors.text}`}>Compartilhar reflexão</span>
               <div className="flex gap-4">
-                {/* Botões lilases conforme solicitado */}
                 <button 
                   onClick={() => handleShare('whatsapp')}
                   className={`flex items-center gap-3 px-6 py-3 rounded-full border transition-all hover:scale-105 active:scale-95 shadow-none ${
