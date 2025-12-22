@@ -14,4 +14,4 @@ export interface DailyMessage {
 }
 
 export type Theme = 'light' | 'dark';
-export type Page = 'home' | 'archive' | 'about-bts' | 'project' | 'mural' | 'contact';
+export type Page = 'home' | 'archive' | 'archive-detail' | 'about-bts' | 'project' | 'mural' | 'contact' | 'app';
