@@ -19,25 +19,24 @@ const App: React.FC = () => {
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Deep linking logic
+  // Efeito para lidar com links diretos (?d=data)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const dateParam = params.get('d');
-    
-    const loadDeepLink = async (date: string) => {
-      setLoading(true);
-      const all = await fetchAllPastMessagesFromSheet();
-      const found = all.find(m => m.date === date);
-      if (found) {
-        setMessage(found);
-        setRevealed(true);
+    const checkDeepLink = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const dateParam = params.get('d');
+      if (dateParam) {
+        setLoading(true);
+        const all = await fetchAllPastMessagesFromSheet();
+        const found = all.find(m => m.date === dateParam);
+        if (found) {
+          setMessage(found);
+          setRevealed(true);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    if (dateParam) {
-      loadDeepLink(dateParam);
-    }
+    checkDeepLink();
 
     const savedTheme = localStorage.getItem('app-theme') as Theme;
     if (savedTheme) {
@@ -73,10 +72,10 @@ const App: React.FC = () => {
 
   const handlePageChange = (page: Page) => {
     if (page === 'home') {
-      // Quando volta para home, sempre esconde a mensagem para forçar o clique em "Revelar"
+      // Ao clicar em Home, sempre "esconde" a mensagem para exigir nova revelação
       setRevealed(false);
       setMessage(null);
-      // Limpa parâmetros da URL ao voltar para a home "pura"
+      // Limpa a URL de parâmetros de busca
       window.history.pushState({}, '', window.location.pathname);
     }
     setCurrentPage(page);
