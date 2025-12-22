@@ -7,6 +7,15 @@ interface AppPageProps {
   theme: Theme;
 }
 
+const AppIconPreview = () => (
+  <div className="flex flex-col items-center justify-center gap-1.5 p-3 bg-white border-2 border-[#3B125C] rounded-[1.2rem] shadow-md w-20 h-20 md:w-24 md:h-24 shrink-0 pointer-events-none select-none">
+    <img src="https://i.imgur.com/kLmiBhu.png" alt="BTS" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+    <span className="text-[7px] md:text-[9px] font-anton tracking-wider text-[#3B125C] uppercase text-center leading-tight">
+      Frases<br/>do BTS
+    </span>
+  </div>
+);
+
 const AppPage: React.FC<AppPageProps> = ({ theme }) => {
   const currentColors = COLORS[theme];
 
@@ -25,8 +34,11 @@ const AppPage: React.FC<AppPageProps> = ({ theme }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* iPhone Instruction */}
         <div className={`p-8 md:p-10 rounded-[2.5rem] border-2 ${currentColors.card} ${currentColors.border} shadow-xl flex flex-col items-center text-center space-y-6`}>
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-3xl">
-            🍎
+          <div className="relative">
+            <AppIconPreview />
+            <div className="absolute -top-2 -right-2 bg-white rounded-full p-1.5 shadow-sm border border-gray-100 flex items-center justify-center">
+              <span className="text-xl">🍎</span>
+            </div>
           </div>
           <h3 className={`text-2xl font-bold ${currentColors.text}`}>No iPhone (iOS)</h3>
           <ol className="text-left space-y-4 text-sm md:text-base opacity-80 leading-relaxed">
@@ -51,8 +63,11 @@ const AppPage: React.FC<AppPageProps> = ({ theme }) => {
 
         {/* Android Instruction */}
         <div className={`p-8 md:p-10 rounded-[2.5rem] border-2 ${currentColors.card} ${currentColors.border} shadow-xl flex flex-col items-center text-center space-y-6`}>
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-3xl">
-            🤖
+          <div className="relative">
+            <AppIconPreview />
+            <div className="absolute -top-2 -right-2 bg-white rounded-full p-1.5 shadow-sm border border-gray-100 flex items-center justify-center">
+              <span className="text-xl">🤖</span>
+            </div>
           </div>
           <h3 className={`text-2xl font-bold ${currentColors.text}`}>No Android</h3>
           <ol className="text-left space-y-4 text-sm md:text-base opacity-80 leading-relaxed">
