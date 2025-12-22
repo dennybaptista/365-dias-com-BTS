@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [message, setMessage] = useState<DailyMessage | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedArchiveMessage, setSelectedArchiveMessage] = useState<DailyMessage | null>(null);
 
   // Efeito para lidar com links diretos (?d=data)
   useEffect(() => {
@@ -71,22 +72,40 @@ const App: React.FC = () => {
   };
 
   const handlePageChange = (page: Page) => {
-    // Quando volta para a HOME (pelo menu ou logo)
+    setSelectedArchiveMessage(null);
     if (page === 'home') {
-      // Força o estado de "não revelado" para que o botão apareça novamente
       setRevealed(false);
       setMessage(null);
-      // Limpa a URL para tirar os parâmetros de data se houver
       window.history.pushState({}, '', window.location.pathname);
     }
     setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleViewArchiveMessage = (msg: DailyMessage) => {
+    setSelectedArchiveMessage(msg);
+    setCurrentPage('archive-detail');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const currentColors = COLORS[theme];
 
   const renderContent = () => {
     switch (currentPage) {
-      case 'archive': return <Archive theme={theme} />;
+      case 'archive': return <Archive theme={theme} onViewMessage={handleViewArchiveMessage} />;
+      case 'archive-detail': 
+        return selectedArchiveMessage ? (
+          <div className="reveal-animation">
+            <DailyWidget 
+              theme={theme} 
+              onReveal={async () => {}} 
+              isRevealing={false} 
+              message={selectedArchiveMessage} 
+              revealed={true} 
+              onBack={() => handlePageChange('archive')}
+            />
+          </div>
+        ) : null;
       case 'about-bts': return <AboutBTS theme={theme} />;
       case 'project': return <Project theme={theme} />;
       case 'mural': return <Mural theme={theme} />;
@@ -106,7 +125,7 @@ const App: React.FC = () => {
             isRevealing={loading} 
             message={message} 
             revealed={revealed} 
-            onBack={() => handlePageChange('home')}
+            onBack={revealed ? () => handlePageChange('home') : undefined}
           />
         </div>
       );
@@ -128,7 +147,7 @@ const App: React.FC = () => {
       <header className={`p-4 md:p-6 border-b ${currentColors.border} flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-50 ${currentColors.bg} bg-opacity-90 backdrop-blur-sm`}>
         <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => handlePageChange('home')}>
           <img src="https://i.imgur.com/kLmiBhu.png" alt="BTS" className="w-8 h-8" />
-          <h1 className="text-xl font-anton tracking-tight text-purple-600 dark:text-purple-400">Frases do BTS</h1>
+          <h1 className="text-xl font-anton tracking-tight text-[#3B125C] dark:text-[#F3E8FF]">Frases do BTS</h1>
         </div>
         <nav className="flex gap-4 overflow-x-auto no-scrollbar max-w-full px-2 py-1">
           {navItems.map(item => (
