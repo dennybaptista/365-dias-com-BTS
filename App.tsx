@@ -9,6 +9,7 @@ import AboutBTS from './components/AboutBTS';
 import Project from './components/Project';
 import Mural from './components/Mural';
 import Contact from './components/Contact';
+import AppPage from './components/AppPage';
 import { fetchDailyMessageFromSheet } from './services/messageService';
 
 const App: React.FC = () => {
@@ -69,6 +70,7 @@ const App: React.FC = () => {
       case 'project': return <Project theme={theme} />;
       case 'mural': return <Mural theme={theme} />;
       case 'contact': return <Contact theme={theme} />;
+      case 'app': return <AppPage theme={theme} />;
       default: return (
         <div className="flex flex-col items-center max-w-full overflow-hidden">
           {!revealed && (
@@ -83,6 +85,16 @@ const App: React.FC = () => {
     }
   };
 
+  const navItems = [
+    { id: 'home', label: 'Home' },
+    { id: 'about-bts', label: 'O BTS' },
+    { id: 'project', label: 'O Projeto' },
+    { id: 'mural', label: 'Mural' },
+    { id: 'archive', label: 'Arquivo' },
+    { id: 'contact', label: 'Contato' },
+    { id: 'app', label: 'App' }
+  ];
+
   return (
     <div className={`min-h-screen ${currentColors.bg} ${currentColors.text} flex flex-col transition-colors duration-500`}>
       <header className={`p-4 md:p-6 border-b ${currentColors.border} flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-50 ${currentColors.bg} bg-opacity-90 backdrop-blur-sm`}>
@@ -91,9 +103,13 @@ const App: React.FC = () => {
           <h1 className="text-xl font-anton tracking-tight">Frases do BTS</h1>
         </div>
         <nav className="flex gap-4 overflow-x-auto no-scrollbar max-w-full px-2 py-1">
-          {['home', 'about-bts', 'project', 'mural', 'archive', 'contact'].map(p => (
-            <button key={p} onClick={() => setCurrentPage(p as Page)} className={`text-[10px] uppercase font-bold tracking-widest whitespace-nowrap transition-colors ${currentPage === p ? 'text-pink-500 border-b-2 border-pink-500' : 'opacity-50 hover:opacity-100'}`}>
-              {p === 'about-bts' ? 'O BTS' : p === 'project' ? 'O Projeto' : p}
+          {navItems.map(item => (
+            <button 
+              key={item.id} 
+              onClick={() => setCurrentPage(item.id as Page)} 
+              className={`text-[10px] uppercase font-bold tracking-widest whitespace-nowrap transition-colors ${currentPage === item.id ? 'text-pink-500 border-b-2 border-pink-500' : 'opacity-50 hover:opacity-100'}`}
+            >
+              {item.label}
             </button>
           ))}
         </nav>
