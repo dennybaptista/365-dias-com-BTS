@@ -51,16 +51,19 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
   const handleShare = (platform: 'whatsapp' | 'telegram') => {
     if (!message) return;
     
+    // Pega o primeiro parágrafo
     const firstParagraph = stripMarkdown(message.reflection.split('\n')[0]);
     const cleanQuote = stripMarkdown(message.quote);
-    const deepLink = `${window.location.origin}${window.location.pathname}?d=${encodeURIComponent(message.date)}`;
     
-    const shareText = `💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${deepLink}`;
+    // Gera link único baseado na data
+    const shareUrl = `${window.location.origin}${window.location.pathname}?d=${encodeURIComponent(message.date)}`;
+    
+    const shareText = `💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${shareUrl}`;
     const encodedText = encodeURIComponent(shareText);
     
     const urls = {
       whatsapp: `https://api.whatsapp.com/send?text=${encodedText}`,
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(`💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: `)}`
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: `)}`
     };
     
     window.open(urls[platform], '_blank');
