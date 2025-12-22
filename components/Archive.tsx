@@ -78,14 +78,14 @@ const Archive: React.FC<ArchiveProps> = ({ theme }) => {
   const handleShare = (msg: DailyMessage, platform: 'whatsapp' | 'telegram') => {
     const firstParagraph = stripMarkdown(msg.reflection.split('\n')[0]);
     const cleanQuote = stripMarkdown(msg.quote);
-    const siteUrl = window.location.origin;
+    const deepLink = `${window.location.origin}${window.location.pathname}?d=${encodeURIComponent(msg.date)}`;
     
-    const shareText = `Oi, tudo bem? Eu trouxe uma reflexão do BTS para você! 💜\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${siteUrl}`;
+    const shareText = `💜 ${msg.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${deepLink}`;
     const encodedText = encodeURIComponent(shareText);
     
     const urls = {
       whatsapp: `https://api.whatsapp.com/send?text=${encodedText}`,
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(siteUrl)}&text=${encodedText}`
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(`💜 ${msg.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: `)}`
     };
     
     window.open(urls[platform], '_blank');
@@ -234,6 +234,20 @@ const Archive: React.FC<ArchiveProps> = ({ theme }) => {
                 <p className={`text-xl font-bold italic ${theme === 'light' ? 'text-purple-700' : 'text-purple-300'}`}>"{formatRichText(selectedMsg.affirmation)}"</p>
               </div>
               <div className="flex flex-col items-center gap-4">
+                <div className="flex gap-4 w-full">
+                  <button 
+                    onClick={() => handleShare(selectedMsg, 'whatsapp')}
+                    className="flex-1 py-4 rounded-2xl bg-green-500 text-white font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+                  >
+                    Compartilhar WhatsApp
+                  </button>
+                  <button 
+                    onClick={() => handleShare(selectedMsg, 'telegram')}
+                    className="flex-1 py-4 rounded-2xl bg-sky-500 text-white font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+                  >
+                    Telegram
+                  </button>
+                </div>
                 <button 
                   onClick={() => setSelectedMsg(null)}
                   className="w-full py-4 rounded-2xl border-2 border-purple-500/20 text-purple-500 font-bold uppercase tracking-widest text-sm hover:bg-purple-500/5 transition-all"
