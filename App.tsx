@@ -71,11 +71,12 @@ const App: React.FC = () => {
   };
 
   const handlePageChange = (page: Page) => {
+    // Quando volta para a HOME (pelo menu ou logo)
     if (page === 'home') {
-      // Ao clicar em Home, sempre "esconde" a mensagem para exigir nova revelação
+      // Força o estado de "não revelado" para que o botão apareça novamente
       setRevealed(false);
       setMessage(null);
-      // Limpa a URL de parâmetros de busca
+      // Limpa a URL para tirar os parâmetros de data se houver
       window.history.pushState({}, '', window.location.pathname);
     }
     setCurrentPage(page);
@@ -94,7 +95,7 @@ const App: React.FC = () => {
       default: return (
         <div className="flex flex-col items-center max-w-full overflow-hidden">
           {!revealed && (
-            <div className="text-center mb-10 px-4">
+            <div className="text-center mb-10 px-4 reveal-animation">
               <h2 className="text-4xl md:text-6xl font-elegant bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">365 dias com BTS</h2>
               <p className="mt-4 opacity-70">Sua dose diária de carinho vinda do Bangtan.</p>
             </div>
