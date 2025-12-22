@@ -18,8 +18,8 @@
   ],
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#a855f7",
-  "background_color": "#FAF7FD",
+  "theme_color": "#3B125C",
+  "background_color": "#FFFFFF",
   "orientation": "portrait",
   "description": "Sua dose diária de carinho vinda do Bangtan.",
   "lang": "pt-BR"
