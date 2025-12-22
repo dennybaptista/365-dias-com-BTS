@@ -53,14 +53,14 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
     
     const firstParagraph = stripMarkdown(message.reflection.split('\n')[0]);
     const cleanQuote = stripMarkdown(message.quote);
-    const siteUrl = window.location.origin;
+    const deepLink = `${window.location.origin}${window.location.pathname}?d=${encodeURIComponent(message.date)}`;
     
-    const shareText = `Oi, tudo bem? Eu trouxe uma reflexão do BTS para você! 💜\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${siteUrl}`;
+    const shareText = `💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${deepLink}`;
     const encodedText = encodeURIComponent(shareText);
     
     const urls = {
       whatsapp: `https://api.whatsapp.com/send?text=${encodedText}`,
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(siteUrl)}&text=${encodedText}`
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(`💜 ${message.title}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: `)}`
     };
     
     window.open(urls[platform], '_blank');
@@ -86,14 +86,14 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
   };
 
   const Tag = ({ children, icon }: { children?: React.ReactNode, icon?: React.ReactNode }) => (
-    <button className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] md:text-[11px] font-bold tracking-tight border transition-all hover:scale-105 active:scale-95 ${
+    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] md:text-[11px] font-bold tracking-tight border transition-all ${
       theme === 'light' 
-        ? 'bg-purple-50 border-purple-100 text-purple-600 hover:bg-purple-100' 
-        : 'bg-purple-900/20 border-purple-800/40 text-purple-300 hover:bg-purple-900/40'
+        ? 'bg-purple-50 border-purple-100 text-purple-600' 
+        : 'bg-purple-900/20 border-purple-800/40 text-purple-300'
     }`}>
       {icon && <span className="opacity-70">{icon}</span>}
       {children}
-    </button>
+    </div>
   );
 
   if (!revealed) {
@@ -172,7 +172,6 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
               ))}
             </div>
 
-            {/* Share Section */}
             <div className="flex flex-col items-center gap-4 py-4">
               <span className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${currentColors.text}`}>Compartilhar reflexão</span>
               <div className="flex gap-4">
