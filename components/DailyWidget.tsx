@@ -71,12 +71,13 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
     const cleanQuote = stripMarkdown(message.quote || '');
     const shareUrl = `${window.location.origin}${window.location.pathname}?d=${encodeURIComponent(message.date)}`;
     
-    const fullShareText = `💜 ${message.title || 'Frases do BTS'}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${shareUrl}`;
+    const introText = `💜 ${message.title || 'Frases do BTS'}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: `;
+    const fullShareText = introText + shareUrl;
     const encodedText = encodeURIComponent(fullShareText);
     
     const urls = {
       whatsapp: `https://api.whatsapp.com/send?text=${encodedText}`,
-      telegram: `https://t.me/share/url?text=${encodedText}`
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(introText)}`
     };
     
     window.open(urls[platform], '_blank');
