@@ -46,7 +46,6 @@ const getProjectDayCount = (): number => {
   return Math.floor(diff / oneDay) + 1;
 };
 
-// Ícones dos serviços
 const MediaIcons = {
   spotify: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.49 17.306c-.215.353-.675.464-1.026.249-2.813-1.718-6.353-2.107-10.521-1.154-.403.092-.81-.162-.902-.565-.092-.402.162-.81.565-.902 4.566-1.044 8.473-.596 11.636 1.334.352.215.463.675.248 1.027zm1.464-3.26c-.27.438-.845.58-1.282.311-3.218-1.977-8.125-2.55-11.93-1.396-.494.15-1.018-.128-1.168-.622-.15-.494.128-1.018.622-1.168 4.346-1.32 9.75-.668 13.447 1.597.437.27.579.844.311 1.282zm.127-3.395C15.228 8.49 8.845 8.277 5.162 9.394c-.558.17-1.144-.144-1.314-.702-.17-.558.144-1.144.702-1.314 4.23-1.283 11.285-1.025 15.748 1.624.502.298.667.944.369 1.446-.298.502-.944.667-1.446.369z"/></svg>
@@ -85,24 +84,26 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
 
   const getMediaInfo = (url: string) => {
     const lowerUrl = url.toLowerCase();
+    const commonColor = 'bg-purple-600 hover:bg-purple-700'; // Todos lilases
+    
     if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
       return { 
         label: 'Assistir no YouTube', 
         icon: MediaIcons.youtube,
-        color: 'bg-[#FF0000] hover:bg-[#CC0000]'
+        color: commonColor
       };
     }
     if (lowerUrl.includes('soundcloud.com')) {
       return { 
         label: 'Ouvir no SoundCloud', 
         icon: MediaIcons.soundcloud,
-        color: 'bg-[#FF3300] hover:bg-[#E62E00]'
+        color: commonColor
       };
     }
     return { 
       label: 'Ouvir no Spotify', 
       icon: MediaIcons.spotify,
-      color: 'bg-[#1DB954] hover:bg-[#1AA34A]'
+      color: commonColor
     };
   };
 
