@@ -13,6 +13,38 @@ import Contact from './components/Contact';
 import AppPage from './components/AppPage';
 import { fetchDailyMessageFromSheet, fetchAllPastMessagesFromSheet } from './services/messageService';
 
+const VisitorCounter: React.FC<{ theme: Theme }> = ({ theme }) => {
+  const [count, setCount] = useState<number | null>(null);
+  const currentColors = COLORS[theme];
+
+  useEffect(() => {
+    // Usando CounterAPI.dev (mais estável para projetos front-end)
+    const namespace = "frases-bts-v2-army";
+    const key = "visitas_totais";
+    
+    // O endpoint /up incrementa e retorna o novo valor
+    fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.count) setCount(data.count);
+      })
+      .catch(() => setCount(null));
+  }, []);
+
+  if (count === null) return null;
+
+  return (
+    <div className={`flex flex-col items-center justify-center gap-1 mb-3 opacity-60 transition-opacity hover:opacity-100`}>
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-1 rounded-full bg-purple-500 animate-ping"></div>
+        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${currentColors.text}`}>
+          {count.toLocaleString()} conexões realizadas
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -20,6 +52,7 @@ const App: React.FC = () => {
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedArchiveMessage, setSelectedArchiveMessage] = useState<DailyMessage | null>(null);
+  const [initialArchiveFilters, setInitialArchiveFilters] = useState<{member?: string, album?: string, song?: string}>({});
 
   useEffect(() => {
     const checkDeepLink = async () => {
@@ -32,6 +65,8 @@ const App: React.FC = () => {
         if (found) {
           setMessage(found);
           setRevealed(true);
+          setSelectedArchiveMessage(found);
+          setCurrentPage('archive-detail');
         }
         setLoading(false);
       }
@@ -71,6 +106,7 @@ const App: React.FC = () => {
 
   const handlePageChange = (page: Page) => {
     setSelectedArchiveMessage(null);
+    setInitialArchiveFilters({});
     if (page === 'home') {
       setRevealed(false);
       setMessage(null);
@@ -80,10 +116,15 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleTagClick = (type: 'member' | 'album' | 'song', value: string) => {
+    setInitialArchiveFilters({ [type]: value });
+    setCurrentPage('archive');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleViewArchiveMessage = (msg: DailyMessage) => {
     setSelectedArchiveMessage(msg);
     setCurrentPage('archive-detail');
-    // Atualiza a URL para permitir compartilhamento direto por link
     const newUrl = `${window.location.pathname}?d=${encodeURIComponent(msg.date)}`;
     window.history.pushState({ date: msg.date }, '', newUrl);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -93,7 +134,7 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (currentPage) {
-      case 'archive': return <Archive theme={theme} onViewMessage={handleViewArchiveMessage} />;
+      case 'archive': return <Archive theme={theme} onViewMessage={handleViewArchiveMessage} initialFilters={initialArchiveFilters} />;
       case 'archive-detail': 
         return selectedArchiveMessage ? (
           <div className="reveal-animation">
@@ -104,6 +145,7 @@ const App: React.FC = () => {
               message={selectedArchiveMessage} 
               revealed={true} 
               onBack={() => handlePageChange('archive')}
+              onTagClick={handleTagClick}
             />
           </div>
         ) : null;
@@ -127,6 +169,7 @@ const App: React.FC = () => {
             message={message} 
             revealed={revealed} 
             onBack={revealed ? () => handlePageChange('home') : undefined}
+            onTagClick={handleTagClick}
           />
         </div>
       );
@@ -162,7 +205,10 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col p-4 md:p-8 overflow-x-hidden items-center justify-center">
         {renderContent()}
       </main>
-      <footer className="p-8 text-center opacity-40 text-[10px] uppercase tracking-widest font-bold">Feito com 💜 por ARMYs</footer>
+      <footer className="p-8 text-center">
+        <VisitorCounter theme={theme} />
+        <p className="opacity-40 text-[10px] uppercase tracking-widest font-bold">Feito com 💜, de uma ARMY para o ARMY.</p>
+      </footer>
     </div>
   );
 };
