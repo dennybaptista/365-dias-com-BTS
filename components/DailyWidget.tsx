@@ -170,10 +170,10 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
       <div className={`w-full rounded-[2.5rem] border-2 overflow-hidden reveal-animation ${currentColors.card} ${currentColors.border} shadow-none`}>
         {message && (
           <div className="flex flex-col">
-            <div className="relative h-56 md:h-96 w-full overflow-hidden">
+            <div className="relative w-full overflow-hidden bg-black/5 flex items-center justify-center">
               <img 
                 src={message.imageUrl || "https://i.imgur.com/nIvbBDx.jpeg"} 
-                className="w-full h-full object-cover"
+                className="w-full h-auto block"
                 alt={message.title}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "https://i.imgur.com/nIvbBDx.jpeg";
