@@ -37,20 +37,25 @@ const getProjectDayCount = (dateStr?: string): number => {
   
   if (dateStr) {
     const parts = dateStr.split('/');
-    targetDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    if (parts.length !== 3) return 1;
+    targetDate = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
   } else {
     const now = new Date();
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    targetDate = new Date(utc - (3 * 3600000));
+    const brtString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+    targetDate = new Date(brtString);
     if (targetDate.getHours() < 4) {
       targetDate.setDate(targetDate.getDate() - 1);
     }
   }
   
+  if (isNaN(targetDate.getTime())) return 1;
+
   const start = new Date(targetDate.getFullYear(), 0, 1);
   const diff = targetDate.getTime() - start.getTime();
   const oneDay = 1000 * 60 * 60 * 24;
-  return Math.floor(diff / oneDay) + 1;
+  
+  // Usar Math.round previne erros quando o dia tem 23 ou 25 horas por causa do DST
+  return Math.round(diff / oneDay) + 1;
 };
 
 const MediaIcons = {
@@ -197,13 +202,15 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
                     {message.member}
                   </Tag>
                 </div>
-                <h2 className={`${theme === 'light' ? 'text-purple-950' : 'text-white'} text-3xl md:text-5xl font-elegant leading-tight`}>
+                {/* Título com tamanho reduzido para maior elegância */}
+                <h2 className={`${theme === 'light' ? 'text-purple-950' : 'text-white'} text-2xl md:text-4xl font-elegant leading-tight`}>
                   {message.title}
                 </h2>
               </div>
 
               <div className={`p-6 md:p-10 rounded-3xl border-2 border-dashed ${theme === 'light' ? 'bg-purple-50/50 border-purple-100' : 'bg-purple-950/20 border-purple-900/40'} relative shadow-none`}>
-                <div className={`text-lg md:text-2xl font-medium leading-relaxed italic ${currentColors.text} opacity-90 whitespace-pre-wrap`}>
+                {/* Citação com tamanho reduzido para maior elegância */}
+                <div className={`text-base md:text-xl font-medium leading-relaxed italic ${currentColors.text} opacity-90 whitespace-pre-wrap`}>
                   "{formatRichText(message.quote)}"
                 </div>
                 <div className="mt-8 flex flex-wrap gap-3">
