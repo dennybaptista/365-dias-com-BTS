@@ -32,17 +32,23 @@ const formatRichText = (text: string) => {
   });
 };
 
-const getProjectDayCount = (): number => {
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const brtOffset = -3;
-  const brt = new Date(utc + (3600000 * brtOffset));
+const getProjectDayCount = (dateStr?: string): number => {
+  let targetDate: Date;
   
-  if (brt.getHours() < 4) {
-    brt.setDate(brt.getDate() - 1);
+  if (dateStr) {
+    const parts = dateStr.split('/');
+    targetDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+  } else {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    targetDate = new Date(utc - (3 * 3600000));
+    if (targetDate.getHours() < 4) {
+      targetDate.setDate(targetDate.getDate() - 1);
+    }
   }
-  const start = new Date(brt.getFullYear(), 0, 1);
-  const diff = brt.getTime() - start.getTime();
+  
+  const start = new Date(targetDate.getFullYear(), 0, 1);
+  const diff = targetDate.getTime() - start.getTime();
   const oneDay = 1000 * 60 * 60 * 24;
   return Math.floor(diff / oneDay) + 1;
 };
@@ -61,7 +67,7 @@ const MediaIcons = {
 
 const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRevealing, message, revealed, onTagClick }) => {
   const currentColors = COLORS[theme] || COLORS.light;
-  const dayOfYear = getProjectDayCount();
+  const dayOfYear = getProjectDayCount(message?.date);
   const totalDays = 365;
 
   const handleShare = (platform: 'whatsapp' | 'telegram') => {
@@ -182,7 +188,6 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
             </div>
 
             <div className="p-7 md:p-12 space-y-8 md:space-y-12">
-              {/* Seção de Título e Autor movida para baixo da imagem */}
               <div className="space-y-5">
                 <div className="flex flex-wrap gap-2">
                   <Tag 
