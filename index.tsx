@@ -18,11 +18,9 @@ const VisitorCounter: React.FC<{ theme: Theme }> = ({ theme }) => {
   const currentColors = COLORS[theme];
 
   useEffect(() => {
-    // Usando CounterAPI.dev (mais estável para projetos front-end)
     const namespace = "frases-bts-v2-army";
     const key = "visitas_totais";
     
-    // O endpoint /up incrementa e retorna o novo valor
     fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`)
       .then(res => res.json())
       .then(data => {
@@ -60,18 +58,24 @@ const App: React.FC = () => {
       const dateParam = params.get('d');
       if (dateParam) {
         setLoading(true);
-        const all = await fetchAllPastMessagesFromSheet();
-        const found = all.find(m => m.date === dateParam);
-        if (found) {
-          setMessage(found);
-          setRevealed(true);
-          setSelectedArchiveMessage(found);
-          setCurrentPage('archive-detail');
+        try {
+          const all = await fetchAllPastMessagesFromSheet();
+          const found = all.find(m => m.date === dateParam);
+          if (found) {
+            setMessage(found);
+            setRevealed(true);
+            setSelectedArchiveMessage(found);
+            setCurrentPage('archive-detail');
+          }
+        } catch (error) {
+          console.error("Erro no deep link:", error);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
     };
     checkDeepLink();
+    
     const savedTheme = localStorage.getItem('app-theme') as Theme;
     if (savedTheme) {
       setTheme(savedTheme);
