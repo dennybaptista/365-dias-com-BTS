@@ -9,11 +9,12 @@ const normalizeHeader = (str: string): string =>
 
 // Helper para obter a data atual no fuso de Brasília (UTC-3) com a regra das 04:00
 const getBrazilEffectiveDate = (): Date => {
+  // Obtém a data/hora atual em Brasília independente do fuso local do navegador
   const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const brt = new Date(utc - (3 * 3600000));
+  const brtString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+  const brt = new Date(brtString);
   
-  // Se for antes das 4h da manhã, ainda conta como o dia anterior para o conteúdo
+  // Se for antes das 4h da manhã em Brasília, ainda conta como o dia anterior para o conteúdo
   if (brt.getHours() < 4) {
     brt.setDate(brt.getDate() - 1);
   }
@@ -22,19 +23,26 @@ const getBrazilEffectiveDate = (): Date => {
   return brt;
 };
 
-// Formata Date para string DD/MM/AAAA
-const formatDateBR = (date: Date): string => {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+// Compara se duas datas são o mesmo dia (ignora horas)
+const isSameDay = (d1: Date, d2: Date): boolean => {
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth() &&
+         d1.getDate() === d2.getDate();
 };
 
 // Converte string DD/MM/AAAA para objeto Date para comparação
 const parseDateBR = (dateStr: string): Date | null => {
-  const parts = dateStr.split('/');
+  if (!dateStr) return null;
+  const clean = dateStr.trim();
+  const parts = clean.split('/');
   if (parts.length !== 3) return null;
-  return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+  
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const year = parseInt(parts[2], 10);
+  
+  const date = new Date(year, month, day);
+  return isNaN(date.getTime()) ? null : date;
 };
 
 const parseCSV = (text: string): string[][] => {
@@ -98,9 +106,12 @@ export const fetchDailyMessageFromSheet = async (): Promise<DailyMessage | null>
     if (rows.length < 2) return await generateDailyMeditation();
     
     const headers = rows[0].map(normalizeHeader);
-    const todayStr = formatDateBR(getBrazilEffectiveDate());
+    const effectiveNow = getBrazilEffectiveDate();
     
-    const todayRow = rows.slice(1).find(row => row[0] === todayStr);
+    const todayRow = rows.slice(1).find(row => {
+      const rowDate = parseDateBR(row[0]);
+      return rowDate && isSameDay(rowDate, effectiveNow);
+    });
     
     if (!todayRow) return await generateDailyMeditation();
     
@@ -110,7 +121,7 @@ export const fetchDailyMessageFromSheet = async (): Promise<DailyMessage | null>
     };
 
     return {
-      date: todayRow[0],
+      date: todayRow[0].trim(),
       title: getVal("titulo"),
       member: getVal("membro"),
       song: getVal("musica"),
@@ -149,7 +160,7 @@ export const fetchAllPastMessagesFromSheet = async (): Promise<DailyMessage[]> =
         };
         
         return {
-          date: row[0],
+          date: row[0].trim(),
           title: getVal("titulo"),
           member: getVal("membro"),
           song: getVal("musica"),
@@ -163,11 +174,11 @@ export const fetchAllPastMessagesFromSheet = async (): Promise<DailyMessage[]> =
         } as DailyMessage;
       })
       .filter(msg => {
-        // Filtra para exibir apenas mensagens de hoje ou do passado
         const msgDate = parseDateBR(msg.date);
-        return msgDate && msgDate <= effectiveNow;
+        // Retorna apenas mensagens de hoje ou do passado
+        return msgDate && (msgDate <= effectiveNow || isSameDay(msgDate, effectiveNow));
       })
-      .reverse(); // Mais recentes primeiro
+      .reverse(); 
   } catch (error) {
     console.error("Erro ao carregar histórico:", error);
     return [];
