@@ -54,10 +54,10 @@ const Mural: React.FC<{ theme: Theme }> = ({ theme }) => {
       {isSubmitted && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsSubmitted(false)}></div>
-          <div className={`relative w-full max-w-sm p-8 rounded-[2rem] border-2 shadow-2xl ${currentColors.card} ${currentColors.border}`}>
+          <div className={`relative w-full max-w-sm p-8 rounded-xl border-2 shadow-2xl ${currentColors.card} ${currentColors.border}`}>
             <h3 className={`text-xl font-bold ${currentColors.text}`}>Mensagem enviada! 💜</h3>
             <p className={`mt-2 text-sm opacity-80 ${currentColors.text}`}>Sua mensagem será analisada e pode aparecer no mural.</p>
-            <button onClick={() => setIsSubmitted(false)} className="mt-8 w-full py-3 rounded-2xl bts-gradient text-white font-bold">Entendido</button>
+            <button onClick={() => setIsSubmitted(false)} className="mt-8 w-full py-3 rounded-lg bts-gradient text-white font-bold">Entendido</button>
           </div>
         </div>
       )}
@@ -67,7 +67,7 @@ const Mural: React.FC<{ theme: Theme }> = ({ theme }) => {
       </div>
       <div className="grid grid-cols-1 gap-6">
         {armyMessages.map((msg) => (
-          <div key={msg.id} className={`p-8 md:p-10 rounded-[2.5rem] border-2 ${currentColors.card} ${currentColors.border} shadow-sm group`}>
+          <div key={msg.id} className={`p-8 md:p-10 rounded-xl border-2 ${currentColors.card} ${currentColors.border} shadow-sm group`}>
             <div className={`text-lg md:text-xl font-medium leading-relaxed mb-8 ${currentColors.text}`}>{msg.content}</div>
             <div className="flex flex-wrap items-center gap-6 text-xs font-semibold">
               <span className={currentColors.text}>{msg.name}</span>
@@ -80,16 +80,16 @@ const Mural: React.FC<{ theme: Theme }> = ({ theme }) => {
       <form onSubmit={handleSubmit} className="pt-20 space-y-8">
         <h2 className={`text-center text-3xl font-elegant ${currentColors.text}`}>Deixe sua mensagem</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <input type="text" name="nome" placeholder="Seu nome" className={`p-4 rounded-2xl border-2 ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
-          <input type="email" name="email" placeholder="Seu e-mail" className={`p-4 rounded-2xl border-2 ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
-          <input type="text" name="localidade" placeholder="Cidade/Estado" className={`p-4 rounded-2xl border-2 ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
-          <input type="text" name="pais" placeholder="País" className={`p-4 rounded-2xl border-2 ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
-          <textarea name="mensagem" maxLength={500} value={message} onChange={e => setMessage(e.target.value)} placeholder="Escreva aqui sua mensagem... 💜" className={`md:col-span-2 p-6 rounded-3xl border-2 min-h-[160px] resize-none ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
+          <input type="text" name="nome" placeholder="Seu nome" className={`p-4 rounded-lg border-2 ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
+          <input type="email" name="email" placeholder="Seu e-mail" className={`p-4 rounded-lg border-2 ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
+          <input type="text" name="localidade" placeholder="Cidade/Estado" className={`p-4 rounded-lg border-2 ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
+          <input type="text" name="pais" placeholder="País" className={`p-4 rounded-lg border-2 ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
+          <textarea name="mensagem" maxLength={500} value={message} onChange={e => setMessage(e.target.value)} placeholder="Escreva aqui sua mensagem... 💜" className={`md:col-span-2 p-6 rounded-xl border-2 min-h-[160px] resize-none ${currentColors.card} ${currentColors.border} ${currentColors.text}`} required />
         </div>
         <button 
           type="submit" 
           disabled={loading}
-          className="w-full py-5 rounded-3xl bg-[#9333ea] text-white font-bold text-lg disabled:opacity-50"
+          className="w-full py-5 rounded-xl bg-[#9333ea] text-white font-bold text-lg disabled:opacity-50 transition-all active:scale-95"
         >
           {loading ? "Enviando..." : "Enviar mensagem"}
         </button>
