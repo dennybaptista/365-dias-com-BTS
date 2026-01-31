@@ -1,4 +1,3 @@
-
 import { DailyMessage } from "../types";
 import { SHEET_CSV_URL } from "../constants";
 import { generateDailyMeditation } from "./geminiService";
@@ -9,12 +8,10 @@ const normalizeHeader = (str: string): string =>
 
 // Helper para obter a data atual no fuso de Brasília (UTC-3) com a regra das 04:00
 const getBrazilEffectiveDate = (): Date => {
-  // Obtém a data/hora atual em Brasília independente do fuso local do navegador
   const now = new Date();
   const brtString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
   const brt = new Date(brtString);
   
-  // Se for antes das 4h da manhã em Brasília, ainda conta como o dia anterior para o conteúdo
   if (brt.getHours() < 4) {
     brt.setDate(brt.getDate() - 1);
   }
@@ -23,14 +20,31 @@ const getBrazilEffectiveDate = (): Date => {
   return brt;
 };
 
-// Compara se duas datas são o mesmo dia (ignora horas)
+// Determina o nome da aba com base na data
+const getSheetNameForDate = (date: Date): string => {
+  const monthNames = [
+    "JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO", 
+    "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
+  ];
+  const month = date.getMonth();
+  const year = date.getFullYear();
+
+  // Regra legada para o início do projeto
+  if (year < 2025 || (year === 2025 && month === 0)) {
+    return "2025 E JANEIRO";
+  }
+
+  // Regra para novos meses: "MES ANO" (Ex: FEVEREIRO 2025)
+  return `${monthNames[month]} ${year}`;
+};
+
+// Compara se duas datas são o mesmo dia
 const isSameDay = (d1: Date, d2: Date): boolean => {
   return d1.getFullYear() === d2.getFullYear() &&
          d1.getMonth() === d2.getMonth() &&
          d1.getDate() === d2.getDate();
 };
 
-// Converte string DD/MM/AAAA para objeto Date para comparação
 const parseDateBR = (dateStr: string): Date | null => {
   if (!dateStr) return null;
   const clean = dateStr.trim();
@@ -95,18 +109,29 @@ const parseCSV = (text: string): string[][] => {
   return result;
 };
 
+// Helper para buscar linhas de uma aba específica
+const fetchRowsFromSheet = async (sheetName: string): Promise<string[][]> => {
+  try {
+    const url = `${SHEET_CSV_URL}&sheet=${encodeURIComponent(sheetName)}&t=${Date.now()}`;
+    const response = await fetch(url);
+    if (!response.ok) return [];
+    const csvText = await response.text();
+    return parseCSV(csvText);
+  } catch (e) {
+    console.error(`Erro ao buscar aba ${sheetName}:`, e);
+    return [];
+  }
+};
+
 export const fetchDailyMessageFromSheet = async (): Promise<DailyMessage | null> => {
   try {
-    const response = await fetch(`${SHEET_CSV_URL}&t=${Date.now()}`);
-    if (!response.ok) throw new Error("Erro ao acessar a planilha");
-    
-    const csvText = await response.text();
-    const rows = parseCSV(csvText);
+    const effectiveNow = getBrazilEffectiveDate();
+    const sheetName = getSheetNameForDate(effectiveNow);
+    const rows = await fetchRowsFromSheet(sheetName);
     
     if (rows.length < 2) return await generateDailyMeditation();
     
     const headers = rows[0].map(normalizeHeader);
-    const effectiveNow = getBrazilEffectiveDate();
     
     const todayRow = rows.slice(1).find(row => {
       const rowDate = parseDateBR(row[0]);
@@ -141,46 +166,69 @@ export const fetchDailyMessageFromSheet = async (): Promise<DailyMessage | null>
 
 export const fetchAllPastMessagesFromSheet = async (): Promise<DailyMessage[]> => {
   try {
-    const response = await fetch(`${SHEET_CSV_URL}&t=${Date.now()}`);
-    if (!response.ok) return [];
-    
-    const csvText = await response.text();
-    const rows = parseCSV(csvText);
-    
-    if (rows.length < 2) return [];
-    
-    const headers = rows[0].map(normalizeHeader);
     const effectiveNow = getBrazilEffectiveDate();
+    const sheetNamesToFetch: string[] = ["2025 E JANEIRO"];
     
-    return rows.slice(1)
-      .map(row => {
+    // Gerar lista de abas do início (Fevereiro 2025) até o mês atual
+    let datePointer = new Date(2025, 1, 1); // Fevereiro é 1
+    const currentMonthEnd = new Date(effectiveNow.getFullYear(), effectiveNow.getMonth(), 1);
+
+    while (datePointer <= currentMonthEnd) {
+      const name = getSheetNameForDate(datePointer);
+      if (!sheetNamesToFetch.includes(name)) {
+        sheetNamesToFetch.push(name);
+      }
+      datePointer.setMonth(datePointer.getMonth() + 1);
+    }
+
+    // Buscar todas as abas em paralelo
+    const allSheetResults = await Promise.all(
+      sheetNamesToFetch.map(name => fetchRowsFromSheet(name))
+    );
+
+    const allMessages: DailyMessage[] = [];
+
+    allSheetResults.forEach(rows => {
+      if (rows.length < 2) return;
+      
+      const headers = rows[0].map(normalizeHeader);
+      
+      rows.slice(1).forEach(row => {
         const getVal = (h: string) => {
           const idx = headers.indexOf(normalizeHeader(h));
           return idx !== -1 ? row[idx]?.trim() || "" : "";
         };
         
-        return {
-          date: row[0].trim(),
-          title: getVal("titulo"),
-          member: getVal("membro"),
-          song: getVal("musica"),
-          album: getVal("album"),
-          spotifyUrl: getVal("spotify_url"),
-          imageUrl: getVal("imagem_url"),
-          quote: getVal("citacao"),
-          reflection: getVal("reflexao"),
-          affirmation: getVal("afirmacao"),
-          source: 'sheet'
-        } as DailyMessage;
-      })
-      .filter(msg => {
-        const msgDate = parseDateBR(msg.date);
-        // Retorna apenas mensagens de hoje ou do passado
-        return msgDate && (msgDate <= effectiveNow || isSameDay(msgDate, effectiveNow));
-      })
-      .reverse(); 
+        const msgDate = parseDateBR(row[0]);
+        // Filtra apenas datas válidas que não estão no futuro
+        if (msgDate && (msgDate <= effectiveNow || isSameDay(msgDate, effectiveNow))) {
+          allMessages.push({
+            date: row[0].trim(),
+            title: getVal("titulo"),
+            member: getVal("membro"),
+            song: getVal("musica"),
+            album: getVal("album"),
+            spotifyUrl: getVal("spotify_url"),
+            imageUrl: getVal("imagem_url"),
+            quote: getVal("citacao"),
+            reflection: getVal("reflexao"),
+            affirmation: getVal("afirmacao"),
+            source: 'sheet'
+          });
+        }
+      });
+    });
+
+    // Ordenar do mais novo para o mais antigo e remover duplicatas (por data)
+    const uniqueMessages = Array.from(new Map(allMessages.map(m => [m.date, m])).values());
+    return uniqueMessages.sort((a, b) => {
+      const dateA = parseDateBR(a.date)?.getTime() || 0;
+      const dateB = parseDateBR(b.date)?.getTime() || 0;
+      return dateB - dateA;
+    });
+
   } catch (error) {
-    console.error("Erro ao carregar histórico:", error);
+    console.error("Erro ao carregar histórico multiavas:", error);
     return [];
   }
 };
