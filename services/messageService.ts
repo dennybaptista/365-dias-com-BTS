@@ -1,3 +1,4 @@
+
 import { DailyMessage } from "../types";
 import { SHEET_CSV_URL } from "../constants";
 import { generateDailyMeditation } from "./geminiService";
@@ -23,19 +24,20 @@ const getBrazilEffectiveDate = (): Date => {
 // Determina o nome da aba com base na data
 const getSheetNameForDate = (date: Date): string => {
   const monthNames = [
-    "JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO", 
+    "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", 
     "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
   ];
   const month = date.getMonth();
   const year = date.getFullYear();
 
-  // Regra legada para o início do projeto
-  if (year < 2025 || (year === 2025 && month === 0)) {
+  // Regra para janeiro de 2025 (aba legada)
+  if (year === 2025 && month === 0) {
     return "2025 E JANEIRO";
   }
 
-  // Regra para novos meses: "MES ANO" (Ex: FEVEREIRO 2025)
-  return `${monthNames[month]} ${year}`;
+  // Para qualquer outro mês, utiliza o padrão solicitado: "MÊS 2026"
+  // Mesmo que o ano atual seja 2025, o sistema buscará a aba com 2026
+  return `${monthNames[month]} 2026`;
 };
 
 // Compara se duas datas são o mesmo dia
@@ -167,10 +169,12 @@ export const fetchDailyMessageFromSheet = async (): Promise<DailyMessage | null>
 export const fetchAllPastMessagesFromSheet = async (): Promise<DailyMessage[]> => {
   try {
     const effectiveNow = getBrazilEffectiveDate();
+    // Inicia com a aba de Janeiro
     const sheetNamesToFetch: string[] = ["2025 E JANEIRO"];
     
-    // Gerar lista de abas do início (Fevereiro 2025) até o mês atual
-    let datePointer = new Date(2025, 1, 1); // Fevereiro é 1
+    // Adiciona as abas mensais até o mês atual
+    // Começamos em Fevereiro (mês 1)
+    let datePointer = new Date(2025, 1, 1); 
     const currentMonthEnd = new Date(effectiveNow.getFullYear(), effectiveNow.getMonth(), 1);
 
     while (datePointer <= currentMonthEnd) {
@@ -200,7 +204,6 @@ export const fetchAllPastMessagesFromSheet = async (): Promise<DailyMessage[]> =
         };
         
         const msgDate = parseDateBR(row[0]);
-        // Filtra apenas datas válidas que não estão no futuro
         if (msgDate && (msgDate <= effectiveNow || isSameDay(msgDate, effectiveNow))) {
           allMessages.push({
             date: row[0].trim(),
@@ -219,7 +222,6 @@ export const fetchAllPastMessagesFromSheet = async (): Promise<DailyMessage[]> =
       });
     });
 
-    // Ordenar do mais novo para o mais antigo e remover duplicatas (por data)
     const uniqueMessages = Array.from(new Map(allMessages.map(m => [m.date, m])).values());
     return uniqueMessages.sort((a, b) => {
       const dateA = parseDateBR(a.date)?.getTime() || 0;
