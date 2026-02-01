@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Theme } from '../types';
 import { COLORS } from '../constants';
@@ -18,7 +17,7 @@ const Project: React.FC<{ theme: Theme }> = ({ theme }) => {
         <p className={`text-sm md:text-base font-bold uppercase tracking-[0.3em] ${currentColors.textMuted}`}>365 dias com BTS</p>
       </div>
       <div className={`p-8 md:p-12 rounded-xl border-2 ${currentColors.card} ${currentColors.border} shadow-xl space-y-8 text-base md:text-lg leading-relaxed ${currentColors.text}`}>
-        <p>O <strong>Frases do BTS: 365 dias com BTS</strong> surgiu da ideia simples de receber uma frase do BTS por dia. Cada uma das frases é escolhida com cuidado, verificando se são trechos reais de músicas ou falas do grupo.</p>
+        <p>O <strong>Frases do BTS: 365 dias com BTS</strong> surgiu da ideia simples de receber uma frase ou trecho de música do BTS por dia, junto de uma reflexão gostosinha no melhor estilo "Meditação Matinal". Cada uma das frases é escolhida com cuidado, verificando se são trechos reais de músicas ou falas do grupo.</p>
         <p>A proposta é simples: transformar essas frases em um pequeno momento diário de reflexão. As mensagens falam sobre amor-próprio, sonhos, crescimento pessoal e esperança.</p>
         <p className="text-2xl pt-4 font-bold">Borahae 💜</p>
       </div>
