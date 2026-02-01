@@ -1,4 +1,3 @@
-
 export const COLORS = {
   light: {
     bg: 'bg-[#FAF7FD]',
@@ -20,7 +19,9 @@ export const COLORS = {
   }
 };
 
-export const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnRgEKWdHgLdP_PQsIgRudsyiTm-pJGbeLobS446BFYLVqeZEHm04zaylFuZjv4Qj0BouYkW9zdkup/pub?output=csv";
+export const SHEET_ID = "1szoE38eosLbul9DXoY9fXe-Ik1zP1U-xWrPkwHvflcI";
+
+export const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
 
 // URL do Google Apps Script configurada para processar Contato e Mural
 export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdK6WEOVdLcl00Cl3amvYPlyRPt2SHueURPishNRU_bzM63SZC9McbZ6GPwIaJsxfc/exec"; 
