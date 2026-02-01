@@ -1,4 +1,3 @@
-
 import { DailyMessage } from "../types";
 import { SHEET_CSV_URL } from "../constants";
 import { generateDailyMeditation } from "./geminiService";
@@ -12,6 +11,10 @@ const getBrazilEffectiveDate = (): Date => {
   const now = new Date();
   const brtString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
   const brt = new Date(brtString);
+  
+  // Forçamos o ano para 2026 conforme solicitado ("Estamos em 2026")
+  // Isso garante que o sistema procure as datas corretas dentro das abas de 2026
+  brt.setFullYear(2026);
   
   if (brt.getHours() < 4) {
     brt.setDate(brt.getDate() - 1);
@@ -28,19 +31,17 @@ const getSheetNameForDate = (date: Date): string => {
     "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
   ];
   const month = date.getMonth();
-  const year = date.getFullYear();
 
-  // Regra para janeiro de 2025 (aba legada)
-  if (year === 2025 && month === 0) {
+  // Caso especial: Janeiro usa a aba "2025 E JANEIRO" (conforme imagem enviada)
+  if (month === 0) {
     return "2025 E JANEIRO";
   }
 
-  // Para qualquer outro mês, utiliza o padrão solicitado: "MÊS 2026"
-  // Mesmo que o ano atual seja 2025, o sistema buscará a aba com 2026
+  // Todos os outros meses de 2026 seguem o padrão solicitado: "MÊS 2026"
   return `${monthNames[month]} 2026`;
 };
 
-// Compara se duas datas são o mesmo dia
+// Compara se é o mesmo dia exato (incluindo o ano forçado 2026)
 const isSameDay = (d1: Date, d2: Date): boolean => {
   return d1.getFullYear() === d2.getFullYear() &&
          d1.getMonth() === d2.getMonth() &&
@@ -135,6 +136,7 @@ export const fetchDailyMessageFromSheet = async (): Promise<DailyMessage | null>
     
     const headers = rows[0].map(normalizeHeader);
     
+    // Procura o dia de hoje (em 2026) na aba selecionada
     const todayRow = rows.slice(1).find(row => {
       const rowDate = parseDateBR(row[0]);
       return rowDate && isSameDay(rowDate, effectiveNow);
@@ -169,20 +171,17 @@ export const fetchDailyMessageFromSheet = async (): Promise<DailyMessage | null>
 export const fetchAllPastMessagesFromSheet = async (): Promise<DailyMessage[]> => {
   try {
     const effectiveNow = getBrazilEffectiveDate();
-    // Inicia com a aba de Janeiro
     const sheetNamesToFetch: string[] = ["2025 E JANEIRO"];
     
-    // Adiciona as abas mensais até o mês atual
-    // Começamos em Fevereiro (mês 1)
-    let datePointer = new Date(2025, 1, 1); 
-    const currentMonthEnd = new Date(effectiveNow.getFullYear(), effectiveNow.getMonth(), 1);
-
-    while (datePointer <= currentMonthEnd) {
-      const name = getSheetNameForDate(datePointer);
+    // Adiciona as abas mensais de 2026 até o mês "atual" em 2026
+    const monthPointer = new Date(2026, 1, 1); // Fevereiro de 2026
+    while (monthPointer.getMonth() <= effectiveNow.getMonth()) {
+      const name = getSheetNameForDate(monthPointer);
       if (!sheetNamesToFetch.includes(name)) {
         sheetNamesToFetch.push(name);
       }
-      datePointer.setMonth(datePointer.getMonth() + 1);
+      if (monthPointer.getMonth() === effectiveNow.getMonth()) break;
+      monthPointer.setMonth(monthPointer.getMonth() + 1);
     }
 
     // Buscar todas as abas em paralelo
@@ -204,29 +203,33 @@ export const fetchAllPastMessagesFromSheet = async (): Promise<DailyMessage[]> =
         };
         
         const msgDate = parseDateBR(row[0]);
-        if (msgDate && (msgDate <= effectiveNow || isSameDay(msgDate, effectiveNow))) {
-          allMessages.push({
-            date: row[0].trim(),
-            title: getVal("titulo"),
-            member: getVal("membro"),
-            song: getVal("musica"),
-            album: getVal("album"),
-            spotifyUrl: getVal("spotify_url"),
-            imageUrl: getVal("imagem_url"),
-            quote: getVal("citacao"),
-            reflection: getVal("reflexao"),
-            affirmation: getVal("afirmacao"),
-            source: 'sheet'
-          });
+        if (msgDate) {
+          // No arquivo, mostramos tudo que é anterior ou igual ao dia "atual" em 2026
+          if (msgDate <= effectiveNow) {
+            allMessages.push({
+              date: row[0].trim(),
+              title: getVal("titulo"),
+              member: getVal("membro"),
+              song: getVal("musica"),
+              album: getVal("album"),
+              spotifyUrl: getVal("spotify_url"),
+              imageUrl: getVal("imagem_url"),
+              quote: getVal("citacao"),
+              reflection: getVal("reflexao"),
+              affirmation: getVal("afirmacao"),
+              source: 'sheet'
+            });
+          }
         }
       });
     });
 
     const uniqueMessages = Array.from(new Map(allMessages.map(m => [m.date, m])).values());
     return uniqueMessages.sort((a, b) => {
-      const dateA = parseDateBR(a.date)?.getTime() || 0;
-      const dateB = parseDateBR(b.date)?.getTime() || 0;
-      return dateB - dateA;
+      const dateA = parseDateBR(a.date);
+      const dateB = parseDateBR(b.date);
+      if (!dateA || !dateB) return 0;
+      return dateB.getTime() - dateA.getTime();
     });
 
   } catch (error) {
