@@ -32,7 +32,6 @@ const Archive: React.FC<ArchiveProps> = ({ theme, onViewMessage, initialFilters 
     load();
   }, []);
 
-  // Sincroniza filtros iniciais se eles mudarem
   useEffect(() => {
     if (initialFilters) {
       if (initialFilters.member) setFilterMember(initialFilters.member);
@@ -41,21 +40,28 @@ const Archive: React.FC<ArchiveProps> = ({ theme, onViewMessage, initialFilters 
     }
   }, [initialFilters]);
 
-  const members = useMemo(() => Array.from(new Set(messages.map(m => m.member))), [messages]);
+  const members = useMemo(() => {
+    const allMembers = messages.flatMap(m => m.member.split(',').map(s => s.trim()).filter(s => s));
+    return Array.from(new Set(allMembers)).sort();
+  }, [messages]);
+
   const albums = useMemo(() => {
-    const filtered = filterMember ? messages.filter(m => m.member === filterMember) : messages;
-    return Array.from(new Set(filtered.map(m => m.album)));
+    const filtered = filterMember 
+      ? messages.filter(m => m.member.split(',').map(s => s.trim()).includes(filterMember)) 
+      : messages;
+    return Array.from(new Set(filtered.map(m => m.album))).sort();
   }, [messages, filterMember]);
+
   const songs = useMemo(() => {
     let filtered = messages;
-    if (filterMember) filtered = filtered.filter(m => m.member === filterMember);
+    if (filterMember) filtered = filtered.filter(m => m.member.split(',').map(s => s.trim()).includes(filterMember));
     if (filterAlbum) filtered = filtered.filter(m => m.album === filterAlbum);
-    return Array.from(new Set(filtered.map(m => m.song)));
+    return Array.from(new Set(filtered.map(m => m.song))).sort();
   }, [messages, filterMember, filterAlbum]);
 
   const filteredMessages = useMemo(() => {
     return messages.filter(m => {
-      const matchMember = !filterMember || m.member === filterMember;
+      const matchMember = !filterMember || m.member.split(',').map(s => s.trim()).includes(filterMember);
       const matchAlbum = !filterAlbum || m.album === filterAlbum;
       const matchSong = !filterSong || m.song === filterSong;
       return matchMember && matchAlbum && matchSong;
@@ -75,26 +81,26 @@ const Archive: React.FC<ArchiveProps> = ({ theme, onViewMessage, initialFilters 
         <h2 className="text-4xl md:text-6xl font-elegant bg-gradient-to-br from-[#a855f7] to-[#ec4899] bg-clip-text text-transparent">Arquivo de Reflexões</h2>
         <p className={`text-sm md:text-base font-medium ${currentColors.textMuted}`}>Reviva todas as doses de carinho do Bangtan já compartilhadas.</p>
       </div>
-      <div className={`p-6 md:p-8 rounded-[2rem] border-2 ${currentColors.card} ${currentColors.border} space-y-6`}>
+      <div className={`p-6 md:p-8 rounded-xl border-2 ${currentColors.card} ${currentColors.border} space-y-6`}>
         <h3 className={`text-xs font-black uppercase tracking-widest ${currentColors.primary}`}>Filtrar memórias</h3>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 space-y-2">
             <label className={`text-[10px] font-bold uppercase tracking-wider ${currentColors.textMuted}`}>Artista / Membro</label>
-            <select value={filterMember} onChange={e => { setFilterMember(e.target.value); setFilterAlbum(''); setFilterSong(''); }} className={`w-full p-3 rounded-xl border ${currentColors.border} bg-transparent outline-none text-sm font-medium ${currentColors.text}`}>
+            <select value={filterMember} onChange={e => { setFilterMember(e.target.value); setFilterAlbum(''); setFilterSong(''); }} className={`w-full p-3 rounded-lg border ${currentColors.border} bg-transparent outline-none text-sm font-medium ${currentColors.text}`}>
               <option value="">Todos os Membros</option>
               {members.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div className="flex-1 space-y-2">
             <label className={`text-[10px] font-bold uppercase tracking-wider ${currentColors.textMuted}`}>Álbum</label>
-            <select value={filterAlbum} disabled={!filterMember && filterMember !== '' && albums.length === 0} onChange={e => { setFilterAlbum(e.target.value); setFilterSong(''); }} className={`w-full p-3 rounded-xl border ${currentColors.border} bg-transparent outline-none text-sm font-medium ${currentColors.text} disabled:opacity-30`}>
+            <select value={filterAlbum} disabled={!filterMember && filterMember !== '' && albums.length === 0} onChange={e => { setFilterAlbum(e.target.value); setFilterSong(''); }} className={`w-full p-3 rounded-lg border ${currentColors.border} bg-transparent outline-none text-sm font-medium ${currentColors.text} disabled:opacity-30`}>
               <option value="">Todos os Álbuns</option>
               {albums.map(a => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
           <div className="flex-1 space-y-2">
             <label className={`text-[10px] font-bold uppercase tracking-wider ${currentColors.textMuted}`}>Música</label>
-            <select value={filterSong} disabled={!filterAlbum} onChange={e => setFilterSong(e.target.value)} className={`w-full p-3 rounded-xl border ${currentColors.border} bg-transparent outline-none text-sm font-medium ${currentColors.text} disabled:opacity-30`}>
+            <select value={filterSong} disabled={!filterAlbum} onChange={e => setFilterSong(e.target.value)} className={`w-full p-3 rounded-lg border ${currentColors.border} bg-transparent outline-none text-sm font-medium ${currentColors.text} disabled:opacity-30`}>
               <option value="">Todas as Músicas</option>
               {songs.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -103,7 +109,7 @@ const Archive: React.FC<ArchiveProps> = ({ theme, onViewMessage, initialFilters 
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredMessages.map((msg, i) => (
-          <div key={i} className={`flex flex-col rounded-[2rem] border-2 overflow-hidden transition-all duration-300 hover:scale-[1.02] ${currentColors.card} ${currentColors.border} group`}>
+          <div key={i} className={`flex flex-col rounded-xl border-2 overflow-hidden transition-all duration-300 hover:scale-[1.02] ${currentColors.card} ${currentColors.border} group`}>
             <div className="relative h-48 overflow-hidden">
               <img src={msg.imageUrl || "https://i.imgur.com/nIvbBDx.jpeg"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={msg.title} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
