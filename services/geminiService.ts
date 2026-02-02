@@ -4,9 +4,8 @@ import { DailyMessage } from "../types";
 import { SYSTEM_INSTRUCTION } from "../constants";
 
 export const generateDailyMeditation = async (): Promise<DailyMessage> => {
-  // Inicialização segura seguindo as diretrizes oficiais
-  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
-  const ai = new GoogleGenAI({ apiKey: apiKey || '' });
+  // Initialize GoogleGenAI with API key from environment exclusively
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
