@@ -54,7 +54,6 @@ const getProjectDayCount = (dateStr?: string): number => {
   const diff = targetDate.getTime() - start.getTime();
   const oneDay = 1000 * 60 * 60 * 24;
   
-  // Usar Math.round previne erros quando o dia tem 23 ou 25 horas por causa do DST
   return Math.round(diff / oneDay) + 1;
 };
 
@@ -79,16 +78,15 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
     if (!message) return;
     
     const reflectionText = message.reflection || '';
-    const firstParagraph = stripMarkdown(reflectionText.split('\n')[0]);
+    const paragraphs = reflectionText.split('\n').filter(p => p.trim() !== '');
+    const firstParagraph = stripMarkdown(paragraphs[0] || '');
     const cleanQuote = stripMarkdown(message.quote || '');
     const shareUrl = `${window.location.origin}${window.location.pathname}?d=${encodeURIComponent(message.date)}`;
     
-    const introText = `💜 ${message.title || 'Frases do BTS'}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: `;
-    const fullShareText = introText + shareUrl;
-    const encodedText = encodeURIComponent(fullShareText);
+    const introText = `💜 ${message.title || 'Frases do BTS'}\n\n"${cleanQuote}"\n\n${firstParagraph}\n\nLeia o restante em: ${shareUrl}`;
     
     const urls = {
-      whatsapp: `https://api.whatsapp.com/send?text=${encodedText}`,
+      whatsapp: `https://api.whatsapp.com/send?text=${encodeURIComponent(introText)}`,
       telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(introText)}`
     };
     
@@ -128,7 +126,8 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
     </div>
   );
 
-  const Tag = ({ children, icon, onClick }: { children?: React.ReactNode, icon?: React.ReactNode, onClick?: () => void }) => (
+  // Fix: define Tag as a React.FC to allow the 'key' prop when rendering in a list
+  const Tag: React.FC<{ children?: React.ReactNode, icon?: React.ReactNode, onClick?: () => void }> = ({ children, icon, onClick }) => (
     <button 
       onClick={(e) => {
         e.stopPropagation();
@@ -148,7 +147,7 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
 
   if (!revealed) {
     return (
-      <div className={`w-full max-w-md p-8 md:p-12 rounded-[2.5rem] transition-all duration-500 border-2 ${currentColors.card} ${currentColors.border} flex flex-col items-center justify-center space-y-8 min-h-[300px] hover:scale-[1.01] cursor-default group shadow-none`}>
+      <div className={`w-full max-md:max-w-md p-8 md:p-12 rounded-xl transition-all duration-500 border-2 ${currentColors.card} ${currentColors.border} flex flex-col items-center justify-center space-y-8 min-h-[300px] hover:scale-[1.01] cursor-default group shadow-none`}>
         <div className="text-center space-y-6 flex flex-col items-center w-full">
           <DayBadge />
           <div className="space-y-3">
@@ -161,7 +160,7 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
         <button
           onClick={onReveal}
           disabled={isRevealing}
-          className="w-full py-4 px-8 rounded-2xl bts-gradient text-white font-bold text-sm md:text-base shadow-lg hover:shadow-purple-500/40 transition-all transform active:scale-95 flex items-center justify-center gap-3"
+          className="w-full py-4 px-8 rounded-lg bts-gradient text-white font-bold text-sm md:text-base shadow-lg hover:shadow-purple-500/40 transition-all transform active:scale-95 flex items-center justify-center gap-3"
         >
           {isRevealing ? (
             <div className="flex items-center gap-2">
@@ -178,7 +177,7 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
       <DayBadge />
       
-      <div className={`w-full rounded-[2.5rem] border-2 overflow-hidden reveal-animation ${currentColors.card} ${currentColors.border} shadow-none`}>
+      <div className={`w-full rounded-xl border-2 overflow-hidden reveal-animation ${currentColors.card} ${currentColors.border} shadow-none`}>
         {message && (
           <div className="flex flex-col">
             <div className="relative w-full overflow-hidden bg-black/5 flex items-center justify-center">
@@ -195,21 +194,22 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
             <div className="p-7 md:p-12 space-y-8 md:space-y-12">
               <div className="space-y-5">
                 <div className="flex flex-wrap gap-2">
-                  <Tag 
-                    onClick={() => onTagClick?.('member', message.member)} 
-                    icon={<span className="text-[14px]">💜</span>}
-                  >
-                    {message.member}
-                  </Tag>
+                  {message.member.split(',').map((m, idx) => (
+                    <Tag 
+                      key={idx}
+                      onClick={() => onTagClick?.('member', m.trim())} 
+                      icon={<span className="text-[14px]">💜</span>}
+                    >
+                      {m.trim()}
+                    </Tag>
+                  ))}
                 </div>
-                {/* Título com tamanho reduzido para maior elegância */}
                 <h2 className={`${theme === 'light' ? 'text-purple-950' : 'text-white'} text-2xl md:text-4xl font-elegant leading-tight`}>
                   {message.title}
                 </h2>
               </div>
 
-              <div className={`p-6 md:p-10 rounded-3xl border-2 border-dashed ${theme === 'light' ? 'bg-purple-50/50 border-purple-100' : 'bg-purple-950/20 border-purple-900/40'} relative shadow-none`}>
-                {/* Citação com tamanho reduzido para maior elegância */}
+              <div className={`p-6 md:p-10 rounded-xl border-2 border-dashed ${theme === 'light' ? 'bg-purple-50/50 border-purple-100' : 'bg-purple-950/20 border-purple-900/40'} relative shadow-none`}>
                 <div className={`text-base md:text-xl font-medium leading-relaxed italic ${currentColors.text} opacity-90 whitespace-pre-wrap`}>
                   "{formatRichText(message.quote)}"
                 </div>
@@ -239,30 +239,30 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
 
               <div className="flex flex-col items-center gap-4 py-6">
                 <span className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${currentColors.text}`}>Compartilhar reflexão</span>
-                <div className="flex gap-4">
+                <div className="flex gap-6">
                   <button 
                     onClick={() => handleShare('whatsapp')}
-                    className={`flex items-center gap-3 px-7 py-3.5 rounded-full border transition-all hover:scale-105 active:scale-95 shadow-none ${
+                    title="WhatsApp"
+                    className={`flex items-center justify-center w-12 h-12 rounded-full border transition-all hover:scale-110 active:scale-95 shadow-none ${
                       theme === 'light' ? 'bg-purple-100 border-purple-200 text-purple-600' : 'bg-purple-900/40 border-purple-800/60 text-purple-200'
                     }`}
                   >
                     <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.587-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217s.231.006.332.013c.101.007.237-.038.37.282.144.346.491 1.197.536 1.285.045.088.075.191.014.311-.06.12-.09.195-.181.299-.091.104-.191.232-.272.311-.097.094-.199.197-.086.391.113.194.502.827 1.077 1.341.74.66 1.362.864 1.557.961.195.097.31.081.425-.052.115-.133.492-.573.622-.769.13-.197.26-.166.44-.099.181.066 1.146.541 1.341.639s.325.146.372.226c.047.081.047.469-.097.874z"/></svg>
-                    <span className="text-xs font-black uppercase tracking-tight">WhatsApp</span>
                   </button>
                   <button 
                      onClick={() => handleShare('telegram')}
-                     className={`flex items-center gap-3 px-7 py-3.5 rounded-full border transition-all hover:scale-105 active:scale-95 shadow-none ${
+                     title="Telegram"
+                     className={`flex items-center justify-center w-12 h-12 rounded-full border transition-all hover:scale-110 active:scale-95 shadow-none ${
                       theme === 'light' ? 'bg-purple-100 border-purple-200 text-purple-600' : 'bg-purple-900/40 border-purple-800/60 text-purple-200'
                     }`}
                   >
                     <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.891 8.146l-1.92 9.043c-.145.639-.523.797-1.058.497l-2.924-2.155-1.411 1.357c-.156.156-.287.287-.588.287l.21-2.972 5.41-4.887c.235-.211-.051-.328-.365-.119l-6.685 4.209-2.88-.9c-.626-.195-.638-.626.13-.923l11.26-4.34c.521-.19.977.123.821.843z"/></svg>
-                    <span className="text-xs font-black uppercase tracking-tight">Telegram</span>
                   </button>
                 </div>
               </div>
 
               <div className="pt-10 border-t border-purple-500/10 space-y-10">
-                <div className={`text-center p-8 md:p-12 rounded-[2rem] ${theme === 'light' ? 'bg-purple-50' : 'bg-purple-900/10'} border border-purple-500/10 shadow-none`}>
+                <div className={`text-center p-8 md:p-12 rounded-xl ${theme === 'light' ? 'bg-purple-50' : 'bg-purple-900/10'} border border-purple-500/10 shadow-none`}>
                   <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] ${currentColors.textMuted} mb-3 block opacity-60`}>Afirmação do Dia</span>
                   <div className={`text-lg md:text-2xl font-bold italic ${theme === 'light' ? 'text-purple-800' : 'text-purple-300'} leading-snug shadow-none whitespace-pre-wrap`}>
                     "{formatRichText(message.affirmation)}"
@@ -277,7 +277,7 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
                         href={message.spotifyUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className={`w-full md:w-auto flex items-center justify-center gap-3 px-10 py-5 rounded-full text-white text-sm font-black transition-all shadow-lg active:scale-95 ${mediaInfo.color}`}
+                        className={`w-full md:w-auto flex items-center justify-center gap-3 px-10 py-5 rounded-lg text-white text-sm font-black transition-all shadow-lg active:scale-95 ${mediaInfo.color}`}
                       >
                         {mediaInfo.icon}
                         {mediaInfo.label}
@@ -288,7 +288,7 @@ const DailyWidget: React.FC<DailyWidgetProps> = ({ theme, onReveal, onBack, isRe
                   {onBack && (
                     <button 
                       onClick={onBack}
-                      className={`text-xs md:text-sm font-black uppercase tracking-widest px-8 py-4 rounded-full border transition-all active:scale-95 flex items-center gap-2 shadow-none ${
+                      className={`text-xs md:text-sm font-black uppercase tracking-widest px-8 py-4 rounded-lg border transition-all active:scale-95 flex items-center gap-2 shadow-none ${
                         theme === 'light' 
                           ? 'border-purple-200 text-purple-400 hover:bg-purple-50 hover:text-purple-600' 
                           : 'border-purple-900/40 text-purple-500 hover:bg-purple-900/20 hover:text-purple-300'
