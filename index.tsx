@@ -1,221 +1,108 @@
-
-import React, { useState, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
-import { Theme, Page, DailyMessage } from './types';
-import { COLORS } from './constants';
-import ThemeToggle from './components/ThemeToggle';
-import DailyWidget from './components/DailyWidget';
-import Archive from './components/Archive';
-import AboutBTS from './components/AboutBTS';
-import Project from './components/Project';
-import Mural from './components/Mural';
-import Contact from './components/Contact';
-import AppPage from './components/AppPage';
-import { fetchDailyMessageFromSheet, fetchAllPastMessagesFromSheet } from './services/messageService';
-
-const VisitorCounter: React.FC<{ theme: Theme }> = ({ theme }) => {
-  const [count, setCount] = useState<number | null>(null);
-  const currentColors = COLORS[theme];
-
-  useEffect(() => {
-    const namespace = "frases-bts-v2-army";
-    const key = "visitas_totais";
-    
-    fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.count) setCount(data.count);
-      })
-      .catch(() => setCount(null));
-  }, []);
-
-  if (count === null) return null;
-
-  return (
-    <div className={`flex flex-col items-center justify-center gap-1 mb-3 opacity-60 transition-opacity hover:opacity-100`}>
-      <div className="flex items-center gap-2">
-        <div className="w-1 h-1 rounded-full bg-purple-500 animate-ping"></div>
-        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${currentColors.text}`}>
-          {count.toLocaleString()} conexões realizadas
-        </span>
-      </div>
-    </div>
-  );
-};
-
-const App: React.FC = () => {
-  const [theme, setTheme] = useState<Theme>('light');
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [message, setMessage] = useState<DailyMessage | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [selectedArchiveMessage, setSelectedArchiveMessage] = useState<DailyMessage | null>(null);
-  const [initialArchiveFilters, setInitialArchiveFilters] = useState<{member?: string, album?: string, song?: string}>({});
-
-  useEffect(() => {
-    const checkDeepLink = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const dateParam = params.get('d');
-      if (dateParam) {
-        setLoading(true);
-        try {
-          const all = await fetchAllPastMessagesFromSheet();
-          const found = all.find(m => m.date === dateParam);
-          if (found) {
-            setMessage(found);
-            setRevealed(true);
-            setSelectedArchiveMessage(found);
-            setCurrentPage('archive-detail');
-          }
-        } catch (error) {
-          console.error("Erro no deep link:", error);
-        } finally {
-          setLoading(false);
-        }
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frases do BTS — Novo endereço</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #ffffff;
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      padding: 2rem 1.5rem;
+    }
+    img.logo { width: 56px; height: 56px; object-fit: contain; margin-bottom: 1.25rem; }
+    h1 {
+      font-family: 'Anton', sans-serif;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #3B125C;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 1rem;
+      color: #555;
+      max-width: 380px;
+      line-height: 1.7;
+      margin-bottom: 1.75rem;
+    }
+    a.btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #3B125C, #ec4899);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      border-radius: 999px;
+      text-decoration: none;
+      margin-bottom: 1.5rem;
+    }
+    .counter {
+      font-size: 0.7rem;
+      color: #aaa;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #a855f7;
+      animation: ping 1.2s ease-in-out infinite;
+    }
+    @keyframes ping {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.5); }
+    }
+    footer {
+      position: fixed;
+      bottom: 1.5rem;
+      font-size: 0.65rem;
+      color: #ccc;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <img class="logo" src="https://i.imgur.com/kLmiBhu.png" alt="BTS" />
+  <h1>Frases do BTS</h1>
+  <p>
+    Mudamos de endereço! 💜<br>
+    Você será redirecionada em instantes para o nosso novo lar.
+  </p>
+  <a class="btn" href="https://frasesdobts.lovable.app">Ir agora para o novo site</a>
+  <div class="counter">
+    <div class="dot"></div>
+    Redirecionando em <span id="ct">8</span>s
+  </div>
+  <footer>Feito com 💜, de uma ARMY para o ARMY.</footer>
+  <script>
+    let s = 8;
+    const el = document.getElementById('ct');
+    const timer = setInterval(function () {
+      s--;
+      if (el) el.textContent = s;
+      if (s <= 0) {
+        clearInterval(timer);
+        window.location.href = 'https://frasesdobts.lovable.app';
       }
-    };
-    checkDeepLink();
-    
-    const savedTheme = localStorage.getItem('app-theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    setTheme(prev => {
-      const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem('app-theme', next);
-      document.documentElement.classList.toggle('dark', next === 'dark');
-      return next;
-    });
-  };
-
-  const handleReveal = async () => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const msg = await fetchDailyMessageFromSheet();
-      if (msg) {
-        setMessage(msg);
-        setRevealed(true);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePageChange = (page: Page) => {
-    setSelectedArchiveMessage(null);
-    setInitialArchiveFilters({});
-    if (page === 'home') {
-      setRevealed(false);
-      setMessage(null);
-      window.history.pushState({}, '', window.location.pathname);
-    }
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleTagClick = (type: 'member' | 'album' | 'song', value: string) => {
-    setInitialArchiveFilters({ [type]: value });
-    setCurrentPage('archive');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleViewArchiveMessage = (msg: DailyMessage) => {
-    setSelectedArchiveMessage(msg);
-    setCurrentPage('archive-detail');
-    const newUrl = `${window.location.pathname}?d=${encodeURIComponent(msg.date)}`;
-    window.history.pushState({ date: msg.date }, '', newUrl);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const currentColors = COLORS[theme];
-
-  const renderContent = () => {
-    switch (currentPage) {
-      case 'archive': return <Archive theme={theme} onViewMessage={handleViewArchiveMessage} initialFilters={initialArchiveFilters} />;
-      case 'archive-detail': 
-        return selectedArchiveMessage ? (
-          <div className="reveal-animation">
-            <DailyWidget 
-              theme={theme} 
-              onReveal={async () => {}} 
-              isRevealing={false} 
-              message={selectedArchiveMessage} 
-              revealed={true} 
-              onBack={() => handlePageChange('archive')}
-              onTagClick={handleTagClick}
-            />
-          </div>
-        ) : null;
-      case 'about-bts': return <AboutBTS theme={theme} />;
-      case 'project': return <Project theme={theme} />;
-      case 'mural': return <Mural theme={theme} />;
-      case 'contact': return <Contact theme={theme} />;
-      case 'app': return <AppPage theme={theme} />;
-      default: return (
-        <div className="flex flex-col items-center max-w-full overflow-hidden">
-          {!revealed && (
-            <div className="text-center mb-10 px-4 reveal-animation">
-              <h2 className="text-4xl md:text-6xl font-elegant bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">365 dias com BTS</h2>
-              <p className="mt-4 opacity-70">Sua dose diária de carinho vinda do Bangtan.</p>
-            </div>
-          )}
-          <DailyWidget 
-            theme={theme} 
-            onReveal={handleReveal} 
-            isRevealing={loading} 
-            message={message} 
-            revealed={revealed} 
-            onBack={revealed ? () => handlePageChange('home') : undefined}
-            onTagClick={handleTagClick}
-          />
-        </div>
-      );
-    }
-  };
-
-  const navItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'about-bts', label: 'O BTS' },
-    { id: 'project', label: 'O Projeto' },
-    { id: 'mural', label: 'Mural' },
-    { id: 'archive', label: 'Arquivo' },
-    { id: 'contact', label: 'Contato' },
-    { id: 'app', label: 'App' }
-  ];
-
-  return (
-    <div className={`min-h-screen ${currentColors.bg} ${currentColors.text} flex flex-col transition-colors duration-500`}>
-      <header className={`p-4 md:p-6 border-b ${currentColors.border} flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-50 ${currentColors.bg} bg-opacity-90 backdrop-blur-sm`}>
-        <div className="flex flex-row items-center gap-2 cursor-pointer shrink-0" onClick={() => handlePageChange('home')}>
-          <img src="https://i.imgur.com/kLmiBhu.png" alt="BTS" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
-          <h1 className="text-lg md:text-xl font-anton tracking-widest uppercase whitespace-nowrap" style={{ color: '#3B125C' }}>Frases do BTS</h1>
-        </div>
-        <nav className="flex gap-4 overflow-x-auto no-scrollbar max-w-full px-2 py-1">
-          {navItems.map(item => (
-            <button key={item.id} onClick={() => handlePageChange(item.id as Page)} className={`text-[10px] uppercase font-bold tracking-widest whitespace-nowrap transition-colors ${currentPage === item.id ? 'text-pink-500 border-b-2 border-pink-500' : 'opacity-50 hover:opacity-100'}`}>{item.label}</button>
-          ))}
-        </nav>
-        <div className="hidden md:block">
-          <ThemeToggle theme={theme} onToggle={toggleTheme} />
-        </div>
-      </header>
-      <main className="flex-1 flex flex-col p-4 md:p-8 overflow-x-hidden items-center justify-center">
-        {renderContent()}
-      </main>
-      <footer className="p-8 text-center">
-        <VisitorCounter theme={theme} />
-        <p className="opacity-40 text-[10px] uppercase tracking-widest font-bold">Feito com 💜, de uma ARMY para o ARMY.</p>
-      </footer>
-    </div>
-  );
-};
-
-const rootElement = document.getElementById('root');
-if (rootElement) { createRoot(rootElement).render(<App />); }
+    }, 1000);
+  </script>
+</body>
+</html>
